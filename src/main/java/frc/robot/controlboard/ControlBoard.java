@@ -1,16 +1,10 @@
 package frc.robot.controlboard;
 
 import frc.robot.Constants;
-import frc.robot.controlboard.GamepadButtonControlBoard;
-import frc.robot.controlboard.GamepadButtonControlBoard.TurretCardinal;
-import frc.robot.lib.geometry.Rotation2d;
-import frc.robot.controlboard.CustomXboxController.Side;
 
-public class ControlBoard {
+public class ControlBoard implements IControlBoard {
     private static ControlBoard mInstance = null;
 
-    private CustomXboxController mController;
-    
     public static ControlBoard getInstance() {
         if (mInstance == null) {
             mInstance = new ControlBoard();
@@ -19,179 +13,125 @@ public class ControlBoard {
         return mInstance;
     }
 
-    private final MainDriveControlBoard mDriveControlBoard;
-    private final GamepadButtonControlBoard mButtonControlBoard;
+    private final IDriveControlBoard mDriveControlBoard;
+    private final IButtonControlBoard mButtonControlBoard;
 
     private ControlBoard() {
-        mDriveControlBoard = MainDriveControlBoard.getInstance();
+        mDriveControlBoard = Constants.kUseDriveGamepad ? GamepadDriveControlBoard.getInstance()
+                : MainDriveControlBoard.getInstance();
         mButtonControlBoard = GamepadButtonControlBoard.getInstance();
     }
 
-    public void reset() {
-    }
+    @Override
+    public void reset() {}
 
+    @Override
     public double getThrottle() {
         return mDriveControlBoard.getThrottle();
     }
-    
-    public boolean getManualSlowRoller() {
-        return mDriveControlBoard.getManualSlowRoller();
-    }
 
-    // public boolean getManualZoom() {
-    //     return mButtonControlBoard.getManualZoom();
-    // }
-
-    // public boolean getWantUnjam() {
-    //     return mButtonControlBoard.getWantUnjam();
-    // }
-
-    public boolean getShotUp() {
-        return mDriveControlBoard.getShotUp();
-    }
-    
-    public boolean getShotDown() {
-        return mDriveControlBoard.getShotDown();
-    }
+    @Override
     public double getTurn() {
         return mDriveControlBoard.getTurn();
     }
-    
-    public boolean getQuickTurn(){
+
+    @Override
+    public boolean getQuickTurn() {
         return mDriveControlBoard.getQuickTurn();
     }
- 
-    public boolean getRunIntake() {
-        return mButtonControlBoard.getRunIntake();
+
+    @Override
+    public boolean getWantsLowGear() {
+        return mDriveControlBoard.getWantsLowGear();
     }
 
-    public boolean getRetractIntake() {
-        return mButtonControlBoard.getRetractIntake();
+    @Override
+    public boolean getShoot() {
+        return mDriveControlBoard.getShoot();
     }
 
-    public Rotation2d getJogTurret() {
+    @Override
+    public boolean getThrust() {
+        return mDriveControlBoard.getThrust();
+    }
+
+    @Override
+    public double getJogTurret() {
         return mButtonControlBoard.getJogTurret();
     }
 
-    public double getJogHood() {
-        return mButtonControlBoard.getJogHood();
+    @Override
+    public boolean getScorePresetLow() {
+        return mButtonControlBoard.getScorePresetLow();
     }
 
-    public boolean getWantHoodScan() {
-        return mButtonControlBoard.getWantHoodScan();
+    @Override
+    public boolean getScorePresetMiddle() {
+        return mButtonControlBoard.getScorePresetMiddle();
     }
 
-    // Intake
-
-    public boolean getShoot() {
-        return mButtonControlBoard.getShoot();
+    @Override
+    public boolean getScorePresetHigh() {
+        return mButtonControlBoard.getScorePresetHigh();
     }
 
-    public boolean getPreShot() {
-        return mButtonControlBoard.getPreShot();
+    @Override
+    public boolean getScorePresetCargo() {
+        return mButtonControlBoard.getScorePresetCargo();
     }
 
-    public boolean getRevolve() {
-        return mButtonControlBoard.getRevolve();
+    @Override
+    public boolean getPresetStow() {
+        return mButtonControlBoard.getPresetStow();
     }
 
-    public boolean getSpinUp() {
-        return mButtonControlBoard.getSpinUp();
+    @Override
+    public boolean getPickupDiskWall() {
+        return mButtonControlBoard.getPickupDiskWall();
     }
 
-    public boolean getTuck() {
-        return mButtonControlBoard.getTuck() || mDriveControlBoard.getTuck();
+    @Override
+    public boolean getPickupBallGround() {
+        return mButtonControlBoard.getPickupBallGround();
     }
 
-    public boolean getUntuck() {
-        return mButtonControlBoard.getUntuck();
-    }
-
-    public boolean getFendorShot() {
-        return mButtonControlBoard.getFendorShot();
-    }
-
-    // public boolean getTestSpit() {
-    //     return mButtonControlBoard.getTestSpit();
-    // }
-
-    public boolean getManualFastRoller() {
-        return mDriveControlBoard.getManualFastRoller();
-    }
-
-    public boolean getStopManualRoller() {
-        return mDriveControlBoard.getStopManualRoller();
-    }
-
-    public boolean getControlPanelRotation() {
-        return mButtonControlBoard.getControlPanelRotation();
-    }
-
-    public boolean getControlPanelPosition() {
-        return mButtonControlBoard.getControlPanelPosition();
-    }
-
-    public boolean getTurretReset() {
-        return mButtonControlBoard.getTurretReset();
-    }
-
+    @Override
     public void setRumble(boolean on) {
         mButtonControlBoard.setRumble(on);
     }
 
-    public boolean getArmExtend() {
-        return mButtonControlBoard.getArmExtend();
+    @Override
+    public boolean getToggleHangMode() {
+        return mButtonControlBoard.getToggleHangMode();
     }
 
-    // public boolean getStopExtend() {
-    //     return mButtonControlBoard.getStopExtend();
-    // }
-
-    // public boolean getStopClimb() {
-    //     return mButtonControlBoard.getStopClimb();
-    // }
-
-    public boolean getBuddyDeploy() {
-        return mButtonControlBoard.getBuddyDeploy();
+    @Override
+    public boolean getToggleHangModeLow() {
+        return mButtonControlBoard.getToggleHangModeLow();
     }
 
-    public boolean getArmHug() {
-        return mButtonControlBoard.getArmHug();
+    @Override
+    public double getElevatorThrottle() {
+        return mButtonControlBoard.getElevatorThrottle();
     }
 
-    public boolean getManualArmExtend() {
-        return mButtonControlBoard.getManualArmExtend();
-    }
-
-    public boolean getManualArmRetract() {
-        return mButtonControlBoard.getManualArmRetract();
-    }
-
-    public boolean getClimb() {
-        return mButtonControlBoard.getClimb();
-    }
-
-    public boolean getBrake() {
-        return mButtonControlBoard.getBrake();
-    }
-
-    public boolean getWrangle() {
-        return mButtonControlBoard.getWrangle();
-    }
-
-    
-    public boolean climbMode() {
-        return mButtonControlBoard.climbMode();
-        //return mController.getButton(XboxController.Button.LB) && mController.getButton(XboxController.Button.RB)  && 
-        //mController.getTrigger(XboxController.Side.LEFT) &&  mController.getTrigger(XboxController.Side.RIGHT);
-    }
-
+    @Override
     public TurretCardinal getTurretCardinal() {
         return mButtonControlBoard.getTurretCardinal();
     }
 
-    public boolean getLeaveClimbMode() {
-        return mButtonControlBoard.getLeaveClimbMode(); 
+    @Override
+    public boolean getAutoAim() {
+        return mButtonControlBoard.getAutoAim();
+    }
+
+    @Override
+    public double getJoggingX() {
+        return mButtonControlBoard.getJoggingX();
+    }
+
+    @Override
+    public double getJoggingZ() {
+        return mButtonControlBoard.getJoggingZ();
     }
 }
-   

@@ -3,10 +3,9 @@ package frc.robot.controlboard;
 import frc.robot.Constants;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.XboxController;
 
-public class CustomXboxController {
-    private final XboxController mController;
+public class XboxController {
+    private final Joystick mController;
 
     public enum Side {
         LEFT, RIGHT
@@ -26,8 +25,8 @@ public class CustomXboxController {
         }
     }
 
-    CustomXboxController(int port) {
-        mController = new XboxController(port);
+    XboxController(int port) {
+        mController = new Joystick(port);
     }
 
     double getJoystick(Side side, Axis axis) {
@@ -57,9 +56,5 @@ public class CustomXboxController {
 
     private double handleDeadband(double value, double deadband) {
         return (Math.abs(value) > Math.abs(deadband)) ? value : 0;
-    }
-
-    public XboxController getController() {
-        return mController;
     }
 }

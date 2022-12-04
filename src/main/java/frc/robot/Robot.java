@@ -14,7 +14,6 @@ public class Robot extends TimedRobot {
   private final Drive mDrive = new Drive();
 
 
-
   @Override
   public void robotInit() {
 
@@ -65,6 +64,7 @@ public class Robot extends TimedRobot {
     double throttle = mControlBoard.getThrottle();
     double turn = mControlBoard.getTurn();
     mDrive.setCheesyishDrive(throttle, turn, mControlBoard.getQuickTurn());
+
   }
 
   @Override
