@@ -11,6 +11,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
   private final Drive mDrive = new Drive();
+  private final ControlBoard mControlBoard = ControlBoard.getInstance();
 
 
   @Override
@@ -60,6 +61,11 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
+    double throttle = mControlBoard.getThrottle();
+    double turn = mControlBoard.getTurn();
+    boolean quickTurn = mControlBoard.getQuickTurn();
+    
+    mDrive.setCheesyishDrive(throttle, turn, quickTurn);
   }
 
   @Override

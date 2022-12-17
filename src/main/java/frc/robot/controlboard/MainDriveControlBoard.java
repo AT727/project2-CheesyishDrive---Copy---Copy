@@ -12,6 +12,7 @@ public class MainDriveControlBoard implements IDriveControlBoard {
         }
 
         return mInstance;
+        
     }
 
     private final Joystick mThrottleStick;
@@ -36,13 +37,15 @@ public class MainDriveControlBoard implements IDriveControlBoard {
     @Override
     public boolean getQuickTurn() {
 
-        if(getThrottle() == 0){
+        if(Math.abs(getThrottle()) < 0.05){
             return true;
         }
         
         else{
             return false;
         }
+
+        //return mTurnStick.getRawButton(1);
     }
 
     @Override

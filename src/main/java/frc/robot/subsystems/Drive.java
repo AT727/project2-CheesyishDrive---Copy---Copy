@@ -84,12 +84,8 @@ public class Drive extends SubsystemBase {
   };
 
 
-  public synchronized void setCheesyishDrive() {
+  public synchronized void setCheesyishDrive(double throttle, double wheel, boolean quickTurn) {
 
-    double throttle = mControlBoard.getThrottle();
-    double wheel = mControlBoard.getTurn();
-    boolean quickTurn = mControlBoard.getQuickTurn();
-    
     if (Util.epsilonEquals(throttle, 0.0, 0.04)) {
         throttle = 0;
     }
