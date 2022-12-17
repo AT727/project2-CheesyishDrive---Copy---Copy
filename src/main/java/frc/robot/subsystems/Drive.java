@@ -12,14 +12,19 @@ import frc.robot.Kinematics;
 import frc.robot.lib.drivers.LazySparkMax;
 import frc.robot.lib.drivers.SparkMaxFactory;
 import frc.robot.lib.geometry.Twist2d;
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
+import frc.robot.controlboard.*;
 
 public class Drive extends SubsystemBase {
   
-  private final LazySparkMax mLeftMaster, mRightMaster, mLeftSlave, mRightSlave;
+  private final CANSparkMax mLeftMaster, mLeftSlave1, mLeftSlave2, mRightMaster, mRightSlave1, mRightSlave2;
   private boolean mIsBrakeMode;
   private DriveControlState mDriveControlState;
   private PeriodicIO mPeriodicIO;
+  private final ControlBoard mControlBoard = ControlBoard.getInstance();
 
   public enum DriveControlState {
     OPEN_LOOP, // open loop voltage control
@@ -27,26 +32,64 @@ public class Drive extends SubsystemBase {
   }
 
   public Drive() {
-    mLeftMaster = SparkMaxFactory.createDefaultSparkMax(Constants.kLeftDriveMasterId);
-    configureSpark(mLeftMaster, true, true);
 
-    mLeftSlave = SparkMaxFactory.createPermanentSlaveSparkMax(Constants.kLeftDriveSlaveId, mLeftMaster);
-    configureSpark(mLeftSlave, true, false);
+    //left master
+    mLeftMaster = new CANSparkMax(Constants.kLeftDriveMasterId, MotorType.kBrushless);
+    mLeftMaster.restoreFactoryDefaults();
+    mLeftMaster.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 5);
+    mLeftMaster.setOpenLoopRampRate(0.3); //cheesy Poofs have it as 0.0
+    mLeftMaster.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0); //should change
 
-    mRightMaster = SparkMaxFactory.createDefaultSparkMax(Constants.kRightDriveMasterId);
-    configureSpark(mRightMaster, false, true);
+    //left slaves
+    mLeftSlave1 = new CANSparkMax(Constants.kLeftDriveSlaveId1, MotorType.kBrushless);
+    mLeftSlave1.restoreFactoryDefaults();
 
-    mRightSlave = SparkMaxFactory.createPermanentSlaveSparkMax(Constants.kRightDriveSlaveId, mRightMaster);
-    configureSpark(mRightSlave, false, false);
-  }
+    mLeftSlave1.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+    mLeftSlave1.follow(mLeftMaster);
 
-  private void configureSpark(LazySparkMax sparkMax, boolean left, boolean master) {
-    sparkMax.setInverted(!left);
-    sparkMax.enableVoltageCompensation(12.0);
-    sparkMax.setClosedLoopRampRate(Constants.kDriveVoltageRampRate);
-}
+    mLeftSlave2 = new CANSparkMax(Constants.kLeftDriveSlaveId2, MotorType.kBrushless);
+    mLeftSlave2.restoreFactoryDefaults();
 
-  public synchronized void setCheesyishDrive(double throttle, double wheel, boolean quickTurn) {
+    mLeftSlave2.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+    mLeftSlave2.follow(mLeftMaster);
+
+    //right master
+    mRightMaster = new CANSparkMax(Constants.kRightDriveMasterId, MotorType.kBrushless);
+    mRightMaster.restoreFactoryDefaults();
+    mRightMaster.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 5);
+    mRightMaster.setOpenLoopRampRate(0.3); //cheesy Poofs have it as 0.0
+    mRightMaster.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0); //should change
+
+    //right slaves
+    mRightSlave1 = new CANSparkMax(Constants.kRightDriveSlaveId1, MotorType.kBrushless);
+    mRightSlave1.restoreFactoryDefaults();
+
+    mRightSlave1.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+    mRightSlave1.follow(mRightMaster);
+
+    mRightSlave2 = new CANSparkMax(Constants.kRightDriveSlaveId2, MotorType.kBrushless);
+    mRightSlave2.restoreFactoryDefaults();
+
+    mRightSlave2.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+    mRightSlave2.follow(mRightMaster);
+
+    //invert drive motors
+    mRightMaster.setInverted(true);
+    mRightSlave1.setInverted(true);
+    mRightSlave2.setInverted(true);
+    mLeftMaster.setInverted(false);
+    mLeftSlave1.setInverted(false);
+    mLeftSlave2.setInverted(false);
+
+  };
+
+
+  public synchronized void setCheesyishDrive() {
+
+    double throttle = mControlBoard.getThrottle();
+    double wheel = mControlBoard.getTurn();
+    boolean quickTurn = mControlBoard.getQuickTurn();
+    
     if (Util.epsilonEquals(throttle, 0.0, 0.04)) {
         throttle = 0;
     }
@@ -64,7 +107,7 @@ public class Drive extends SubsystemBase {
         wheel = Math.sin(Math.PI / 2.0 * kWheelNonlinearity * wheel);
         wheel = wheel / (denominator * denominator) * Math.abs(throttle);
     }
-
+    
     wheel *= kWheelGain;
     DriveSignal signal = Kinematics.inverseKinematics(new Twist2d(throttle, 0.0, wheel));
     double scaling_factor = Math.max(1.0, Math.max(Math.abs(signal.getLeft()), Math.abs(signal.getRight())));
@@ -91,10 +134,12 @@ public synchronized void setBrakeMode(boolean shouldEnable) {
       mIsBrakeMode = shouldEnable;
       IdleMode mode = shouldEnable ? IdleMode.kBrake : IdleMode.kCoast;
       mRightMaster.setIdleMode(mode);
-      mRightSlave.setIdleMode(mode);
+      mRightSlave1.setIdleMode(mode);
+      mRightSlave2.setIdleMode(mode);
 
       mLeftMaster.setIdleMode(mode);
-      mLeftSlave.setIdleMode(mode);
+      mLeftSlave1.setIdleMode(mode);
+      mLeftSlave2.setIdleMode(mode);
 
   }
 }

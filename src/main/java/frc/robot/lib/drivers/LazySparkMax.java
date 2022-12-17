@@ -2,7 +2,6 @@ package frc.robot.lib.drivers;
 
 import com.revrobotics.REVLibError;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.ControlType;
 
 /**
  * This class is a thin wrapper around the CANTalon that reduces CAN bus / CPU

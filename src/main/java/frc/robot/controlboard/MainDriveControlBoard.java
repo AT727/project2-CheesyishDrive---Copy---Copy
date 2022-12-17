@@ -29,12 +29,20 @@ public class MainDriveControlBoard implements IDriveControlBoard {
 
     @Override
     public double getTurn() {
+
         return -mTurnStick.getRawAxis(0);
     }
 
     @Override
     public boolean getQuickTurn() {
-        return mTurnStick.getRawButton(1);
+
+        if(getThrottle() == 0){
+            return true;
+        }
+        
+        else{
+            return false;
+        }
     }
 
     @Override

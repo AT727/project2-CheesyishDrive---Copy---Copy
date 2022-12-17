@@ -10,7 +10,6 @@ import frc.robot.controlboard.*;
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
-  private final ControlBoard mControlBoard = ControlBoard.getInstance();
   private final Drive mDrive = new Drive();
 
 
@@ -53,7 +52,6 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
 
-    mControlBoard.reset();
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
@@ -61,9 +59,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    double throttle = mControlBoard.getThrottle();
-    double turn = mControlBoard.getTurn();
-    mDrive.setCheesyishDrive(throttle, turn, mControlBoard.getQuickTurn());
 
   }
 
