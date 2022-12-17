@@ -16,7 +16,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
-import frc.robot.controlboard.*;
+
 
 public class Drive extends SubsystemBase {
   
@@ -24,7 +24,6 @@ public class Drive extends SubsystemBase {
   private boolean mIsBrakeMode;
   private DriveControlState mDriveControlState;
   private PeriodicIO mPeriodicIO;
-  private final ControlBoard mControlBoard = ControlBoard.getInstance();
 
   public enum DriveControlState {
     OPEN_LOOP, // open loop voltage control
@@ -81,6 +80,11 @@ public class Drive extends SubsystemBase {
     mLeftSlave1.setInverted(false);
     mLeftSlave2.setInverted(false);
 
+     // force a CAN message across
+     mIsBrakeMode = true;
+     setBrakeMode(false); 
+     
+
   };
 
 
@@ -111,12 +115,17 @@ public class Drive extends SubsystemBase {
 }
 
 public synchronized void setOpenLoop(DriveSignal signal) {
-  if (mDriveControlState != DriveControlState.OPEN_LOOP) {
-      setBrakeMode(true);
-      System.out.println("switching to open loop");
-      System.out.println(signal);
-      mDriveControlState = DriveControlState.OPEN_LOOP;
-  }
+  // if (mDriveControlState != DriveControlState.OPEN_LOOP) {
+  //     setBrakeMode(true);
+  //     System.out.println("switching to open loop");
+  //     System.out.println(signal);
+  //     mDriveControlState = DriveControlState.OPEN_LOOP;
+  // }
+
+  //During drive, robot should be in open loop all the time, and we don't really use the enum
+
+  setBrakeMode(true); 
+  setCurrentLimiting(true); //team 27 rush
 
   mPeriodicIO.left_demand = signal.getLeft();
   mPeriodicIO.right_demand = signal.getRight();
@@ -124,8 +133,34 @@ public synchronized void setOpenLoop(DriveSignal signal) {
   mPeriodicIO.right_feedforward = 0.0;
 }
 
+private void setCurrentLimiting(boolean shouldCurrentLimit) {
+
+  //we already setSmartCurrentLimit in drive(), but I guess they have this to make sure it's always limited
+
+  if (shouldCurrentLimit) {
+    mLeftMaster.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+    mLeftSlave1.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+    mLeftSlave2.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+
+    mRightMaster.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+    mRightSlave1.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+    mRightSlave2.setSmartCurrentLimit(Constants.MAX_PEAK_CURRENT, Constants.MAX_CONTINUOUS_CURRENT, 0);
+  } else {
+    mLeftMaster.setSmartCurrentLimit(100);
+    mLeftSlave1.setSmartCurrentLimit(100);
+    mLeftSlave2.setSmartCurrentLimit(100);
+
+    mRightMaster.setSmartCurrentLimit(100);
+    mRightSlave1.setSmartCurrentLimit(100);
+    mRightSlave2.setSmartCurrentLimit(100);
+  }
+}
+
 
 public synchronized void setBrakeMode(boolean shouldEnable) {
+
+//mIsBrakeMode is set to false in drive(), so all this runs 
+
   if (mIsBrakeMode != shouldEnable) {
       mIsBrakeMode = shouldEnable;
       IdleMode mode = shouldEnable ? IdleMode.kBrake : IdleMode.kCoast;
@@ -137,8 +172,12 @@ public synchronized void setBrakeMode(boolean shouldEnable) {
       mLeftSlave1.setIdleMode(mode);
       mLeftSlave2.setIdleMode(mode);
 
+      //brake mode shorts motor wires -> makes robot stop faster
+      //coast mode disconnects motor wires -> motor deccerlates at it's rate
+
   }
 }
+
 
 public static class PeriodicIO {
   // INPUTS
